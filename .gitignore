@@ -1,0 +1,44 @@
+# Python
+__pycache__
+.pytest_cache
+
+# Media
+*.png
+*.jpe?g
+*.gif
+*.wav
+!test/media/**/*.jpe?g
+!test/media/**/*.png
+
+# Models
+*.mlmodel
+*.onnx
+*.onnx.data
+*.onnx_data
+*.pt
+*.pth
+*.tflite
+*.mlpackage
+*.mlpackage.zip
+*.dlc
+*.gguf
+*.vmfb
+*.npz
+
+# Environment
+.env*
+!.env.example
+
+# IDE
+.idea
+.vscode/*
+!.vscode/launch.json
+.vs
+
+# Misc
+.DS_Store
+*.pem
+
+# Virtual envs
+.venv
+venv
