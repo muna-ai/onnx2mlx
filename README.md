@@ -2,7 +2,7 @@
 
 ![Muna logo](https://raw.githubusercontent.com/muna-ai/.github/main/banner.png)
 
-Accelerate inference on Apple Silicon by converting ONNX models into [MLX](https://github.com/ml-explore/mlx) callables.
+Convert ONNX models into [MLX](https://github.com/ml-explore/mlx) callables for accelerating inference on Apple Silicon.
 
 ## Setup Instructions
 Open a terminal and run the following command:
