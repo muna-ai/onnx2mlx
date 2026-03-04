@@ -75,6 +75,28 @@ def topk(inputs, attrs):
     values = mx.take_along_axis(x, indices, axis=axis)
     return [values, indices]
 
+@register("CumSum")
+def cumsum(inputs, attrs):
+    x = inputs[0]
+    axis = inputs[1].item()
+    exclusive = bool(attrs.get("exclusive", 0))
+    reverse = bool(attrs.get("reverse", 0))
+    if reverse:
+        x = mx.flip(x, axis=axis)
+    if exclusive:
+        x = mx.cumsum(x, axis=axis)
+        # Shift forward and fill first element with 0
+        slices = [slice(None)] * x.ndim
+        slices[axis] = slice(0, -1)
+        zero_shape = list(x.shape)
+        zero_shape[axis] = 1
+        x = mx.concatenate([mx.zeros(zero_shape, dtype=x.dtype), x[tuple(slices)]], axis=axis)
+    else:
+        x = mx.cumsum(x, axis=axis)
+    if reverse:
+        x = mx.flip(x, axis=axis)
+    return [x]
+
 def _reduce_axes(inputs, attrs):
     if len(inputs) > 1 and inputs[1] is not None:
         return inputs[1].tolist()

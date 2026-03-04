@@ -41,3 +41,7 @@ def or_(inputs, attrs):
 @register("Where")
 def where(inputs, attrs):
     return [mx.where(inputs[0], inputs[1], inputs[2])]
+
+@register("IsNaN")
+def isnan(inputs, attrs):
+    return [mx.isnan(inputs[0])]

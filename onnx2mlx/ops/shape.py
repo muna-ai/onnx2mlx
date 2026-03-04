@@ -11,6 +11,12 @@ def reshape(inputs, attrs):
     data = inputs[0]
     shape = inputs[1]
     shape_list = shape.tolist()
+    allowzero = int(attrs.get("allowzero", 0))
+    if not allowzero:
+        shape_list = [
+            data.shape[i] if s == 0 and i < data.ndim else s
+            for i, s in enumerate(shape_list)
+        ]
     return [mx.reshape(data, shape_list)]
 
 @register("Transpose")
@@ -73,9 +79,6 @@ def split(inputs, attrs):
     elif num_outputs is not None:
         return list(mx.split(x, num_outputs, axis=axis))
     return [x]
-
-_INT64_MAX = 2**63 - 1
-_INT64_MIN = -(2**63 - 1)
 
 @register("Slice")
 def slice_(inputs, attrs):
@@ -145,7 +148,9 @@ def tile(inputs, attrs):
 @register("Shape")
 def shape(inputs, attrs):
     s = list(inputs[0].shape)
-    return [mx.array(s, dtype=mx.int64)]
+    start = int(attrs.get("start", 0))
+    end = int(attrs.get("end", len(s)))
+    return [mx.array(s[start:end], dtype=mx.int64)]
 
 @register("ConstantOfShape")
 def constant_of_shape(inputs, attrs):
@@ -157,3 +162,6 @@ def constant_of_shape(inputs, attrs):
     else:
         val = 0.0
     return [mx.full(shape, val)]
+
+_INT64_MAX = 2**63 - 1
+_INT64_MIN = -(2**63 - 1)

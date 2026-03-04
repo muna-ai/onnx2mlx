@@ -20,7 +20,10 @@ def mul(inputs, attrs):
 
 @register("Div")
 def div(inputs, attrs):
-    return [mx.divide(inputs[0], inputs[1])]
+    a, b = inputs[0], inputs[1]
+    if mx.issubdtype(a.dtype, mx.integer) and mx.issubdtype(b.dtype, mx.integer):
+        return [mx.floor_divide(a, b)]
+    return [mx.divide(a, b)]
 
 @register("Pow")
 def pow_(inputs, attrs):
@@ -105,3 +108,11 @@ def cos(inputs, attrs):
 @register("Tan")
 def tan(inputs, attrs):
     return [mx.tan(inputs[0])]
+
+@register("Atan")
+def atan(inputs, attrs):
+    return [mx.arctan(inputs[0])]
+
+@register("Round")
+def round_(inputs, attrs):
+    return [mx.round(inputs[0])]

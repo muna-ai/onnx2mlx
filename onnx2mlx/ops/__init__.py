@@ -30,4 +30,7 @@ from . import (
     reduction,
     tensor,
     image,
+    quant,
+    sequence,
+    control,
 )
