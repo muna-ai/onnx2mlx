@@ -1,0 +1,3 @@
+mlx[cpu]
+numpy
+onnx
