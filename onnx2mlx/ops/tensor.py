@@ -5,13 +5,17 @@
 
 from math import prod
 import mlx.core as mx
-from . import register
+
+from ..context import ConvertContext
 from .._utils import onnx_dtype_to_mlx, onnx_tensor_to_mlx
+from . import register
+
 
 @register("Constant")
 def constant(
     inputs: list[mx.array | None],
-    attrs: dict[str, object]
+    attrs: dict[str, object],
+    ctx: ConvertContext
 ) -> list[mx.array]:
     if "value" in attrs:
         return [onnx_tensor_to_mlx(attrs["value"])]
@@ -28,30 +32,36 @@ def constant(
 @register("Cast")
 def cast(
     inputs: list[mx.array | None],
-    attrs: dict[str, object]
+    attrs: dict[str, object],
+    ctx: ConvertContext
 ) -> list[mx.array]:
     to = attrs.get("to")
     dtype = onnx_dtype_to_mlx(to)
+    if dtype == mx.float64 and ctx.float64_mode == "emulate_fp32":
+        dtype = mx.float32
     return [inputs[0].astype(dtype)]
 
 @register("CastLike")
 def cast_like(
     inputs: list[mx.array | None],
-    attrs: dict[str, object]
+    attrs: dict[str, object],
+    ctx: ConvertContext
 ) -> list[mx.array]:
     return [inputs[0].astype(inputs[1].dtype)]
 
 @register("Identity")
 def identity(
     inputs: list[mx.array | None],
-    attrs: dict[str, object]
+    attrs: dict[str, object],
+    ctx: ConvertContext
 ) -> list[mx.array]:
     return [inputs[0]]
 
 @register("Dropout")
 def dropout(
     inputs: list[mx.array | None],
-    attrs: dict[str, object]
+    attrs: dict[str, object],
+    ctx: ConvertContext
 ) -> list[mx.array]:
     outputs = [inputs[0]]
     if len(inputs) > 1:
@@ -61,7 +71,8 @@ def dropout(
 @register("Range")
 def range_(
     inputs: list[mx.array | None],
-    attrs: dict[str, object]
+    attrs: dict[str, object],
+    ctx: ConvertContext
 ) -> list[mx.array]:
     start = inputs[0].item()
     limit = inputs[1].item()
@@ -71,14 +82,16 @@ def range_(
 @register("NonZero")
 def non_zero(
     inputs: list[mx.array | None],
-    attrs: dict[str, object]
+    attrs: dict[str, object],
+    ctx: ConvertContext
 ) -> list[mx.array]:
     raise NotImplementedError("NonZero is not supported in MLX")
 
 @register("RandomUniformLike")
 def random_uniform_like(
     inputs: list[mx.array | None],
-    attrs: dict[str, object]
+    attrs: dict[str, object],
+    ctx: ConvertContext
 ) -> list[mx.array]:
     x = inputs[0]
     low = float(attrs.get("low", 0.0))
@@ -89,7 +102,8 @@ def random_uniform_like(
 @register("RandomNormalLike")
 def random_normal_like(
     inputs: list[mx.array | None],
-    attrs: dict[str, object]
+    attrs: dict[str, object],
+    ctx: ConvertContext
 ) -> list[mx.array]:
     x = inputs[0]
     mean = float(attrs.get("mean", 0.0))
@@ -100,7 +114,8 @@ def random_normal_like(
 @register("ScatterElements")
 def scatter_elements(
     inputs: list[mx.array | None],
-    attrs: dict[str, object]
+    attrs: dict[str, object],
+    ctx: ConvertContext
 ) -> list[mx.array]:
     data = inputs[0]
     indices = inputs[1]
@@ -148,7 +163,8 @@ def scatter_elements(
 @register("ScatterND")
 def scatter_nd(
     inputs: list[mx.array | None],
-    attrs: dict[str, object]
+    attrs: dict[str, object],
+    ctx: ConvertContext
 ) -> list[mx.array]:
     data = inputs[0]
     indices = inputs[1]

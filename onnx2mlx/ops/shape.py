@@ -7,7 +7,7 @@ import mlx.core as mx
 from . import register
 
 @register("Reshape")
-def reshape(inputs, attrs):
+def reshape(inputs, attrs, ctx):
     data = inputs[0]
     shape = inputs[1]
     shape_list = shape.tolist()
@@ -20,19 +20,19 @@ def reshape(inputs, attrs):
     return [mx.reshape(data, shape_list)]
 
 @register("Transpose")
-def transpose(inputs, attrs):
+def transpose(inputs, attrs, ctx):
     perm = attrs.get("perm", None)
     if perm is not None:
         perm = list(perm)
     return [mx.transpose(inputs[0], axes=perm)]
 
 @register("Flatten")
-def flatten(inputs, attrs):
+def flatten(inputs, attrs, ctx):
     axis = attrs.get("axis", 1)
     return [mx.flatten(inputs[0], start_axis=axis)]
 
 @register("Squeeze")
-def squeeze(inputs, attrs):
+def squeeze(inputs, attrs, ctx):
     x = inputs[0]
     if len(inputs) > 1 and inputs[1] is not None:
         axes = inputs[1].tolist()
@@ -47,7 +47,7 @@ def squeeze(inputs, attrs):
     return [mx.squeeze(x)]
 
 @register("Unsqueeze")
-def unsqueeze(inputs, attrs):
+def unsqueeze(inputs, attrs, ctx):
     x = inputs[0]
     if len(inputs) > 1 and inputs[1] is not None:
         axes = sorted(inputs[1].tolist())
@@ -58,13 +58,13 @@ def unsqueeze(inputs, attrs):
     return [x]
 
 @register("Concat")
-def concat(inputs, attrs):
+def concat(inputs, attrs, ctx):
     axis = attrs.get("axis", 0)
     valid = [inp for inp in inputs if inp is not None]
     return [mx.concatenate(valid, axis=axis)]
 
 @register("Split")
-def split(inputs, attrs):
+def split(inputs, attrs, ctx):
     x = inputs[0]
     axis = attrs.get("axis", 0)
     num_outputs = attrs.get("num_outputs", None)
@@ -81,7 +81,7 @@ def split(inputs, attrs):
     return [x]
 
 @register("Slice")
-def slice_(inputs, attrs):
+def slice_(inputs, attrs, ctx):
     data = inputs[0]
     starts = [int(x) for x in inputs[1].tolist()]
     ends = [int(x) for x in inputs[2].tolist()]
@@ -95,17 +95,17 @@ def slice_(inputs, attrs):
     return [data[tuple(slices)]]
 
 @register("Gather")
-def gather(inputs, attrs):
+def gather(inputs, attrs, ctx):
     axis = attrs.get("axis", 0)
     return [mx.take(inputs[0], inputs[1], axis=axis)]
 
 @register("GatherElements")
-def gather_elements(inputs, attrs):
+def gather_elements(inputs, attrs, ctx):
     axis = attrs.get("axis", 0)
     return [mx.take_along_axis(inputs[0], inputs[1], axis=axis)]
 
 @register("Expand")
-def expand(inputs, attrs):
+def expand(inputs, attrs, ctx):
     data = inputs[0]
     target = [int(s) for s in inputs[1].tolist()]
     data_shape = list(data.shape)
@@ -118,7 +118,7 @@ def expand(inputs, attrs):
     return [mx.broadcast_to(data, out_shape)]
 
 @register("Pad")
-def pad(inputs, attrs):
+def pad(inputs, attrs, ctx):
     data = inputs[0]
     pads_tensor = inputs[1]
     constant_value = inputs[2] if len(inputs) > 2 and inputs[2] is not None else mx.array(0.0)
@@ -142,18 +142,18 @@ def pad(inputs, attrs):
     return [mx.pad(data, pad_widths)]
 
 @register("Tile")
-def tile(inputs, attrs):
+def tile(inputs, attrs, ctx):
     return [mx.tile(inputs[0], inputs[1].tolist())]
 
 @register("Shape")
-def shape(inputs, attrs):
+def shape(inputs, attrs, ctx):
     s = list(inputs[0].shape)
     start = int(attrs.get("start", 0))
     end = int(attrs.get("end", len(s)))
     return [mx.array(s[start:end], dtype=mx.int64)]
 
 @register("ConstantOfShape")
-def constant_of_shape(inputs, attrs):
+def constant_of_shape(inputs, attrs, ctx):
     shape = inputs[0].tolist()
     value = attrs.get("value", None)
     if value is not None:

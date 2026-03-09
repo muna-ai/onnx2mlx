@@ -9,7 +9,7 @@ from . import register
 from .._utils import onnx_pads_to_mlx
 
 @register("MaxPool")
-def max_pool(inputs, attrs):
+def max_pool(inputs, attrs, ctx):
     x = inputs[0]
     kernel_shape, strides, pads, auto_pad, ceil_mode = _get_pool_params(attrs)
     padding = _pool_padding(auto_pad, pads)
@@ -31,7 +31,7 @@ def max_pool(inputs, attrs):
     return [y]
 
 @register("AveragePool")
-def average_pool(inputs, attrs):
+def average_pool(inputs, attrs, ctx):
     x = inputs[0]
     kernel_shape, strides, pads, auto_pad, ceil_mode = _get_pool_params(attrs)
     padding = _pool_padding(auto_pad, pads)
@@ -53,13 +53,13 @@ def average_pool(inputs, attrs):
     return [y]
 
 @register("GlobalAveragePool")
-def global_average_pool(inputs, attrs):
+def global_average_pool(inputs, attrs, ctx):
     x = inputs[0]
     spatial_axes = tuple(range(2, x.ndim))
     return [mx.mean(x, axis=spatial_axes, keepdims=True)]
 
 @register("GlobalMaxPool")
-def global_max_pool(inputs, attrs):
+def global_max_pool(inputs, attrs, ctx):
     x = inputs[0]
     spatial_axes = tuple(range(2, x.ndim))
     return [mx.max(x, axis=spatial_axes, keepdims=True)]

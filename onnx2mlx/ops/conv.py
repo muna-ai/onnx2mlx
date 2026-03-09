@@ -4,18 +4,28 @@
 #
 
 import mlx.core as mx
-from . import register
+
+from ..context import ConvertContext
 from .._utils import onnx_pads_to_mlx
+from . import register
 
 @register("Conv")
-def conv(inputs, attrs):
+def conv(
+    inputs: list[mx.array | None],
+    attrs: dict[str, object],
+    ctx: ConvertContext,
+) -> list[mx.array]:
     x = inputs[0]
     w = inputs[1]
     b = inputs[2] if len(inputs) > 2 and inputs[2] is not None else None
     return [_conv_impl(x, w, b, attrs)]
 
 @register("ConvTranspose")
-def conv_transpose(inputs, attrs):
+def conv_transpose(
+    inputs: list[mx.array | None],
+    attrs: dict[str, object],
+    ctx: ConvertContext,
+) -> list[mx.array]:
     x = inputs[0]
     w = inputs[1]
     b = inputs[2] if len(inputs) > 2 and inputs[2] is not None else None

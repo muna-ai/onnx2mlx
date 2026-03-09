@@ -5,10 +5,16 @@
 
 import mlx.core as mx
 import mlx.nn as nn
+
+from ..context import ConvertContext
 from . import register
 
 @register("Resize")
-def resize(inputs, attrs):
+def resize(
+    inputs: list[mx.array | None],
+    attrs: dict[str, object],
+    ctx: ConvertContext,
+) -> list[mx.array]:
     x = inputs[0]
     # inputs: X, roi, scales, [sizes]
     scales = inputs[2] if len(inputs) > 2 and inputs[2] is not None else None
@@ -55,7 +61,11 @@ def resize(inputs, attrs):
     return [y]
 
 @register("GridSample")
-def grid_sample(inputs, attrs):
+def grid_sample(
+    inputs: list[mx.array | None],
+    attrs: dict[str, object],
+    ctx: ConvertContext,
+) -> list[mx.array]:
     x = inputs[0]        # (N, C, H_in, W_in) -- NCHW
     grid = inputs[1]     # (N, H_out, W_out, 2)
     mode = attrs.get("mode", "bilinear")
@@ -81,7 +91,7 @@ def _onnx_resize_mode(mode: str) -> str:
         case "bicubic":     return "cubic"
         case _:             raise NotImplementedError(f"Resize mode '{mode}' is not supported")
 
-def _grid_sample_metal(x, grid):
+def _grid_sample_metal(x: mx.array, grid: mx.array):
     """
     Bilinear grid sample with zeros padding and align_corners=False.
 

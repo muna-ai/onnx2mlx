@@ -10,8 +10,13 @@ from typing import Callable
 
 from ._utils import get_attrs, onnx_tensor_to_mlx
 from .ops import OP_REGISTRY
+from .context import ConvertContext, Float64Mode
 
-def onnx2mlx(model: ModelProto) -> Callable[..., mx.array | list[mx.array]]:
+def onnx2mlx(
+    model: ModelProto,
+    *,
+    float64_mode: Float64Mode="raise",
+) -> Callable[..., mx.array | list[mx.array]]:
     """
     Convert an ONNX model to an MLX callable.
 
@@ -21,10 +26,18 @@ def onnx2mlx(model: ModelProto) -> Callable[..., mx.array | list[mx.array]]:
 
     The callable is compatible with `mx.compile` and `mx.export_function`
     because all control flow is data-independent.
+
+    Args:
+        model: The ONNX model to convert.
+        float64_mode: How to handle float64 (double) precision casts. MLX does
+            not support float64 on the GPU. ``"raise"`` (default) will let the
+            error propagate. ``"use_fp32"`` will downgrade float64 casts
+            to float32.
     """
+    ctx = ConvertContext(float64_mode=float64_mode)
     initializers, input_names, output_names, node_specs = _compile_graph(model.graph)
     def forward(*args: mx.array):
-        return _run_graph(initializers, input_names, output_names, node_specs, args)
+        return _run_graph(initializers, input_names, output_names, node_specs, args, ctx)
     return forward
 
 def _compile_graph(graph) -> tuple[dict[str, mx.array], list[str], list[str], list]:
@@ -66,14 +79,14 @@ def _compile_subgraph(graph) -> Callable:
     Compile a subgraph into a callable that takes a values dict.
     """
     initializers, input_names, output_names, node_specs = _compile_graph(graph)
-    def run(parent_values: dict, *args):
+    def run(parent_values: dict, ctx: ConvertContext, *args):
         values = dict(parent_values)
         values.update(initializers)
         for name, arg in zip(input_names, args):
             values[name] = arg
         for inp_names, out_names, handler, attrs in node_specs:
             inputs = [values.get(n) if n != "" else None for n in inp_names]
-            outputs = handler(inputs, attrs)
+            outputs = handler(inputs, attrs, ctx)
             for name, out in zip(out_names, outputs):
                 values[name] = out
         return [values[name] for name in output_names]
@@ -81,7 +94,7 @@ def _compile_subgraph(graph) -> Callable:
     run._output_names = output_names
     return run
 
-def _run_graph(initializers, input_names, output_names, node_specs, args):
+def _run_graph(initializers, input_names, output_names, node_specs, args, ctx):
     """
     Execute a compiled graph.
     """
@@ -90,7 +103,7 @@ def _run_graph(initializers, input_names, output_names, node_specs, args):
         values[name] = arg
     for inp_names, out_names, handler, attrs in node_specs:
         inputs = [values.get(n) if n != "" else None for n in inp_names]
-        outputs = handler(inputs, {**attrs, "_scope": values})
+        outputs = handler(inputs, { **attrs, "_scope": values }, ctx)
         for name, out in zip(out_names, outputs):
             values[name] = out
     results = [values[name] for name in output_names]

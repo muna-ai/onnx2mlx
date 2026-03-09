@@ -7,11 +7,11 @@ import mlx.core as mx
 from . import register
 
 @register("SequenceEmpty")
-def sequence_empty(inputs, attrs):
+def sequence_empty(inputs, attrs, ctx):
     return [[]]
 
 @register("SplitToSequence")
-def split_to_sequence(inputs, attrs):
+def split_to_sequence(inputs, attrs, ctx):
     x = inputs[0]
     split = inputs[1] if len(inputs) > 1 and inputs[1] is not None else None
     axis = int(attrs.get("axis", 0))
@@ -37,7 +37,7 @@ def split_to_sequence(inputs, attrs):
     return [chunks]
 
 @register("ConcatFromSequence")
-def concat_from_sequence(inputs, attrs):
+def concat_from_sequence(inputs, attrs, ctx):
     seq = inputs[0]
     axis = int(attrs.get("axis", 0))
     new_axis = bool(attrs.get("new_axis", 0))
@@ -46,13 +46,13 @@ def concat_from_sequence(inputs, attrs):
     return [mx.concatenate(seq, axis=axis)]
 
 @register("SequenceAt")
-def sequence_at(inputs, attrs):
+def sequence_at(inputs, attrs, ctx):
     seq = inputs[0]
     idx = inputs[1].item()
     return [seq[int(idx)]]
 
 @register("SequenceInsert")
-def sequence_insert(inputs, attrs):
+def sequence_insert(inputs, attrs, ctx):
     seq = list(inputs[0])
     tensor = inputs[1]
     if len(inputs) > 2 and inputs[2] is not None:

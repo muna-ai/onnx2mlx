@@ -4,20 +4,30 @@
 #
 
 import mlx.core as mx
+
+from ..context import ConvertContext
 from . import register
 
 @register("If")
-def if_(inputs, attrs):
+def if_(
+    inputs: list[mx.array | None],
+    attrs: dict[str, object],
+    ctx: ConvertContext,
+) -> list[mx.array]:
     cond = inputs[0]
     scope = attrs.get("_scope", {})
     then_branch = attrs["then_branch"]
     else_branch = attrs["else_branch"]
     if cond.item():
-        return then_branch(scope)
-    return else_branch(scope)
+        return then_branch(scope, ctx)
+    return else_branch(scope, ctx)
 
 @register("Loop")
-def loop(inputs, attrs):
+def loop(
+    inputs: list[mx.array | None],
+    attrs: dict[str, object],
+    ctx: ConvertContext,
+) -> list[mx.array]:
     max_trip = inputs[0]
     cond = inputs[1]
     body = attrs["body"]
@@ -33,7 +43,7 @@ def loop(inputs, attrs):
             break
         iter_val = mx.array([i], dtype=mx.int64)
         cond_arr = mx.array(cond_val, dtype=mx.bool_)
-        results = body(scope, iter_val, cond_arr, *carried)
+        results = body(scope, ctx, iter_val, cond_arr, *carried)
         cond_val = results[0].item() if isinstance(results[0], mx.array) else bool(results[0])
         carried = list(results[1:1 + num_carried])
         for j in range(num_scan):

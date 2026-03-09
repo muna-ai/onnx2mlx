@@ -4,14 +4,24 @@
 #
 
 import mlx.core as mx
+
+from ..context import ConvertContext
 from . import register
 
 @register("MatMul")
-def matmul(inputs, attrs):
+def matmul(
+    inputs: list[mx.array | None],
+    attrs: dict[str, object],
+    ctx: ConvertContext,
+) -> list[mx.array]:
     return [mx.matmul(inputs[0], inputs[1])]
 
 @register("Gemm")
-def gemm(inputs, attrs):
+def gemm(
+    inputs: list[mx.array | None],
+    attrs: dict[str, object],
+    ctx: ConvertContext,
+) -> list[mx.array]:
     A, B = inputs[0], inputs[1]
     C = inputs[2] if len(inputs) > 2 and inputs[2] is not None else None
     alpha = attrs.get("alpha", 1.0)
@@ -32,6 +42,10 @@ def gemm(inputs, attrs):
     return [result]
 
 @register("Einsum")
-def einsum(inputs, attrs):
+def einsum(
+    inputs: list[mx.array | None],
+    attrs: dict[str, object],
+    ctx: ConvertContext,
+) -> list[mx.array]:
     equation = attrs.get("equation", "")
     return [mx.einsum(equation, *inputs)]

@@ -5,63 +5,113 @@
 
 import mlx.core as mx
 import mlx.nn as nn
+
+from ..context import ConvertContext
 from . import register
 
 @register("Relu")
-def relu(inputs, attrs):
+def relu(
+    inputs: list[mx.array | None],
+    attrs: dict[str, object],
+    ctx: ConvertContext,
+) -> list[mx.array]:
     return [nn.relu(inputs[0])]
 
 @register("Sigmoid")
-def sigmoid(inputs, attrs):
+def sigmoid(
+    inputs: list[mx.array | None],
+    attrs: dict[str, object],
+    ctx: ConvertContext,
+) -> list[mx.array]:
     return [mx.sigmoid(inputs[0])]
 
 @register("Tanh")
-def tanh(inputs, attrs):
+def tanh(
+    inputs: list[mx.array | None],
+    attrs: dict[str, object],
+    ctx: ConvertContext,
+) -> list[mx.array]:
     return [mx.tanh(inputs[0])]
 
 @register("LeakyRelu")
-def leaky_relu(inputs, attrs):
+def leaky_relu(
+    inputs: list[mx.array | None],
+    attrs: dict[str, object],
+    ctx: ConvertContext,
+) -> list[mx.array]:
     alpha = attrs.get("alpha", 0.01)
     return [nn.leaky_relu(inputs[0], negative_slope=alpha)]
 
 @register("Elu")
-def elu(inputs, attrs):
+def elu(
+    inputs: list[mx.array | None],
+    attrs: dict[str, object],
+    ctx: ConvertContext,
+) -> list[mx.array]:
     alpha = attrs.get("alpha", 1.0)
     return [nn.elu(inputs[0], alpha=alpha)]
 
 @register("Selu")
-def selu(inputs, attrs):
+def selu(
+    inputs: list[mx.array | None],
+    attrs: dict[str, object],
+    ctx: ConvertContext,
+) -> list[mx.array]:
     return [nn.selu(inputs[0])]
 
 @register("Gelu")
-def gelu(inputs, attrs):
+def gelu(
+    inputs: list[mx.array | None],
+    attrs: dict[str, object],
+    ctx: ConvertContext,
+) -> list[mx.array]:
     approximate = attrs.get("approximate", "none")
     if approximate == "tanh":
         return [nn.gelu_approx(inputs[0])]
     return [nn.gelu(inputs[0])]
 
 @register("Softmax")
-def softmax(inputs, attrs):
+def softmax(
+    inputs: list[mx.array | None],
+    attrs: dict[str, object],
+    ctx: ConvertContext,
+) -> list[mx.array]:
     axis = attrs.get("axis", -1)
     return [mx.softmax(inputs[0], axis=axis)]
 
 @register("LogSoftmax")
-def log_softmax(inputs, attrs):
+def log_softmax(
+    inputs: list[mx.array | None],
+    attrs: dict[str, object],
+    ctx: ConvertContext,
+) -> list[mx.array]:
     axis = attrs.get("axis", -1)
     return [mx.log(mx.softmax(inputs[0], axis=axis))]
 
 @register("HardSigmoid")
-def hard_sigmoid(inputs, attrs):
+def hard_sigmoid(
+    inputs: list[mx.array | None],
+    attrs: dict[str, object],
+    ctx: ConvertContext,
+) -> list[mx.array]:
     alpha = attrs.get("alpha", 0.2)
     beta = attrs.get("beta", 0.5)
     return [mx.clip(mx.add(mx.multiply(inputs[0], alpha), beta), 0.0, 1.0)]
 
 @register("Hardswish")
-def hardswish(inputs, attrs):
+def hardswish(
+    inputs: list[mx.array | None],
+    attrs: dict[str, object],
+    ctx: ConvertContext,
+) -> list[mx.array]:
     return [nn.hardswish(inputs[0])]
 
 @register("Clip")
-def clip(inputs, attrs):
+def clip(
+    inputs: list[mx.array | None],
+    attrs: dict[str, object],
+    ctx: ConvertContext,
+) -> list[mx.array]:
     x = inputs[0]
     a_min = inputs[1] if len(inputs) > 1 and inputs[1] is not None else None
     a_max = inputs[2] if len(inputs) > 2 and inputs[2] is not None else None
@@ -74,22 +124,42 @@ def clip(inputs, attrs):
     return [x]
 
 @register("Softplus")
-def softplus(inputs, attrs):
+def softplus(
+    inputs: list[mx.array | None],
+    attrs: dict[str, object],
+    ctx: ConvertContext,
+) -> list[mx.array]:
     return [nn.softplus(inputs[0])]
 
 @register("Softsign")
-def softsign(inputs, attrs):
+def softsign(
+    inputs: list[mx.array | None],
+    attrs: dict[str, object],
+    ctx: ConvertContext,
+) -> list[mx.array]:
     return [nn.softsign(inputs[0])]
 
 @register("Mish")
-def mish(inputs, attrs):
+def mish(
+    inputs: list[mx.array | None],
+    attrs: dict[str, object],
+    ctx: ConvertContext,
+) -> list[mx.array]:
     return [nn.mish(inputs[0])]
 
 @register("PRelu")
-def prelu(inputs, attrs):
+def prelu(
+    inputs: list[mx.array | None],
+    attrs: dict[str, object],
+    ctx: ConvertContext,
+) -> list[mx.array]:
     return [nn.prelu(inputs[0], inputs[1])]
 
 @register("Celu")
-def celu(inputs, attrs):
+def celu(
+    inputs: list[mx.array | None],
+    attrs: dict[str, object],
+    ctx: ConvertContext,
+) -> list[mx.array]:
     alpha = attrs.get("alpha", 1.0)
     return [nn.celu(inputs[0], alpha=alpha)]

@@ -7,7 +7,7 @@ import mlx.core as mx
 from . import register
 
 @register("DynamicQuantizeLinear")
-def dynamic_quantize_linear(inputs, attrs) -> list[mx.array]:
+def dynamic_quantize_linear(inputs, attrs, ctx=None) -> list[mx.array]:
     x = inputs[0]
     x_min = mx.minimum(mx.array(0, dtype=x.dtype), mx.min(x))
     x_max = mx.maximum(mx.array(0, dtype=x.dtype), mx.max(x))
@@ -18,7 +18,7 @@ def dynamic_quantize_linear(inputs, attrs) -> list[mx.array]:
     return [y, scale, zero_point]
 
 @register("MatMulInteger")
-def matmul_integer(inputs, attrs) -> list[mx.array]:
+def matmul_integer(inputs, attrs, ctx=None) -> list[mx.array]:
     a = inputs[0]
     b = inputs[1]
     a_zp = inputs[2] if len(inputs) > 2 and inputs[2] is not None else mx.array(0, dtype=a.dtype)
@@ -28,7 +28,7 @@ def matmul_integer(inputs, attrs) -> list[mx.array]:
     return [(a_f @ b_f).astype(mx.int32)]
 
 @register("ConvInteger")
-def conv_integer(inputs, attrs) -> list[mx.array]:
+def conv_integer(inputs, attrs, ctx=None) -> list[mx.array]:
     x = inputs[0]
     w = inputs[1]
     x_zp = inputs[2] if len(inputs) > 2 and inputs[2] is not None else mx.array(0, dtype=x.dtype)
@@ -41,7 +41,7 @@ def conv_integer(inputs, attrs) -> list[mx.array]:
     return [result.astype(mx.int32)]
 
 @register("DynamicQuantizeLSTM")
-def dynamic_quantize_lstm(inputs, attrs) -> list[mx.array]:
+def dynamic_quantize_lstm(inputs, attrs, ctx=None) -> list[mx.array]:
     x = inputs[0]                # (seq_len, batch, input_size)
     w_quant = inputs[1]          # (num_directions, input_size, 4*hidden) uint8
     r_quant = inputs[2]          # (num_directions, hidden, 4*hidden) uint8

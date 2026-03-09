@@ -7,7 +7,7 @@ import mlx.core as mx
 from . import register
 
 @register("BatchNormalization")
-def batch_normalization(inputs, attrs):
+def batch_normalization(inputs, attrs, ctx):
     x = inputs[0]
     scale = inputs[1]
     bias = inputs[2]
@@ -25,7 +25,7 @@ def batch_normalization(inputs, attrs):
     return [y]
 
 @register("LayerNormalization")
-def layer_normalization(inputs, attrs):
+def layer_normalization(inputs, attrs, ctx):
     x = inputs[0]
     scale = inputs[1]
     bias = inputs[2] if len(inputs) > 2 and inputs[2] is not None else None
@@ -40,7 +40,7 @@ def layer_normalization(inputs, attrs):
     return [y]
 
 @register("InstanceNormalization")
-def instance_normalization(inputs, attrs):
+def instance_normalization(inputs, attrs, ctx):
     x = inputs[0]
     scale = inputs[1]
     bias = inputs[2]
@@ -56,7 +56,7 @@ def instance_normalization(inputs, attrs):
     return [y]
 
 @register("GroupNormalization")
-def group_normalization(inputs, attrs):
+def group_normalization(inputs, attrs, ctx):
     x = inputs[0]
     scale = inputs[1]
     bias = inputs[2]

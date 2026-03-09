@@ -3,15 +3,24 @@
 #   Copyright © 2026 NatML Inc. All Rights Reserved.
 #
 
-from typing import Callable
+from __future__ import annotations
 import mlx.core as mx
+from typing import Callable, TYPE_CHECKING
 
-Handler = Callable[[list[mx.array | None], dict[str, object]], list[mx.array]]
+from ..converter import ConvertContext
+
+Handler = Callable[[
+    list[mx.array | None],
+    dict[str, object],
+    ConvertContext
+], list[mx.array]]
 
 OP_REGISTRY: dict[str, Handler] = {}
 
 def register(*op_types: str):
-    """Register one or more ONNX op types to a handler function."""
+    """
+    Register one or more ONNX op types to a handler function.
+    """
     def decorator(fn: Handler) -> Handler:
         for op_type in op_types:
             OP_REGISTRY[op_type] = fn

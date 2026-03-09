@@ -4,58 +4,96 @@
 #
 
 import mlx.core as mx
+
+from ..context import ConvertContext
 from . import register
 
 @register("ReduceSum")
-def reduce_sum(inputs, attrs):
+def reduce_sum(
+    inputs: list[mx.array | None],
+    attrs: dict[str, object],
+    ctx: ConvertContext,
+) -> list[mx.array]:
     axes = _reduce_axes(inputs, attrs)
     keepdims = bool(attrs.get("keepdims", 1))
     return [mx.sum(inputs[0], axis=axes, keepdims=keepdims)]
 
 @register("ReduceMean")
-def reduce_mean(inputs, attrs):
+def reduce_mean(
+    inputs: list[mx.array | None],
+    attrs: dict[str, object],
+    ctx: ConvertContext,
+) -> list[mx.array]:
     axes = _reduce_axes(inputs, attrs)
     keepdims = bool(attrs.get("keepdims", 1))
     return [mx.mean(inputs[0], axis=axes, keepdims=keepdims)]
 
 @register("ReduceMax")
-def reduce_max(inputs, attrs):
+def reduce_max(
+    inputs: list[mx.array | None],
+    attrs: dict[str, object],
+    ctx: ConvertContext,
+) -> list[mx.array]:
     axes = _reduce_axes(inputs, attrs)
     keepdims = bool(attrs.get("keepdims", 1))
     return [mx.max(inputs[0], axis=axes, keepdims=keepdims)]
 
 @register("ReduceMin")
-def reduce_min(inputs, attrs):
+def reduce_min(
+    inputs: list[mx.array | None],
+    attrs: dict[str, object],
+    ctx: ConvertContext,
+) -> list[mx.array]:
     axes = _reduce_axes(inputs, attrs)
     keepdims = bool(attrs.get("keepdims", 1))
     return [mx.min(inputs[0], axis=axes, keepdims=keepdims)]
 
 @register("ReduceProd")
-def reduce_prod(inputs, attrs):
+def reduce_prod(
+    inputs: list[mx.array | None],
+    attrs: dict[str, object],
+    ctx: ConvertContext,
+) -> list[mx.array]:
     axes = _reduce_axes(inputs, attrs)
     keepdims = bool(attrs.get("keepdims", 1))
     return [mx.prod(inputs[0], axis=axes, keepdims=keepdims)]
 
 @register("ArgMax")
-def argmax(inputs, attrs):
+def argmax(
+    inputs: list[mx.array | None],
+    attrs: dict[str, object],
+    ctx: ConvertContext,
+) -> list[mx.array]:
     axis = attrs.get("axis", 0)
     keepdims = bool(attrs.get("keepdims", 1))
     return [mx.argmax(inputs[0], axis=axis, keepdims=keepdims)]
 
 @register("ArgMin")
-def argmin(inputs, attrs):
+def argmin(
+    inputs: list[mx.array | None],
+    attrs: dict[str, object],
+    ctx: ConvertContext,
+) -> list[mx.array]:
     axis = attrs.get("axis", 0)
     keepdims = bool(attrs.get("keepdims", 1))
     return [mx.argmin(inputs[0], axis=axis, keepdims=keepdims)]
 
 @register("ReduceLogSumExp")
-def reduce_logsumexp(inputs, attrs):
+def reduce_logsumexp(
+    inputs: list[mx.array | None],
+    attrs: dict[str, object],
+    ctx: ConvertContext,
+) -> list[mx.array]:
     axes = _reduce_axes(inputs, attrs)
     keepdims = bool(attrs.get("keepdims", 1))
     return [mx.logsumexp(inputs[0], axis=axes, keepdims=keepdims)]
 
 @register("TopK")
-def topk(inputs, attrs):
+def topk(
+    inputs: list[mx.array | None],
+    attrs: dict[str, object],
+    ctx: ConvertContext,
+) -> list[mx.array]:
     x = inputs[0]
     k = inputs[1].item()
     axis = attrs.get("axis", -1)
@@ -76,7 +114,11 @@ def topk(inputs, attrs):
     return [values, indices]
 
 @register("CumSum")
-def cumsum(inputs, attrs):
+def cumsum(
+    inputs: list[mx.array | None],
+    attrs: dict[str, object],
+    ctx: ConvertContext,
+) -> list[mx.array]:
     x = inputs[0]
     axis = inputs[1].item()
     exclusive = bool(attrs.get("exclusive", 0))
