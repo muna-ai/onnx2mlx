@@ -71,7 +71,7 @@ def grid_sample(
     mode = attrs.get("mode", "bilinear")
     padding_mode = attrs.get("padding_mode", "zeros")
     align_corners = bool(attrs.get("align_corners", 0))
-    if mode == "bilinear" and padding_mode == "zeros" and not align_corners:
+    if mode in ("bilinear", "linear") and padding_mode == "zeros" and not align_corners:
         # NCHW -> NHWC
         x_nhwc = mx.transpose(x, (0, 2, 3, 1))
         y_nhwc = _grid_sample_metal(x_nhwc, grid)

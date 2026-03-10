@@ -72,6 +72,7 @@ def _conv_impl(x, w, b, attrs):
     if ndim == 1:
         x = mx.transpose(x, (0, 2, 1))
         w = mx.transpose(w, (0, 2, 1))
+        x, padding = _apply_asymmetric_padding(x, padding, ndim)
         y = mx.conv1d(x, w, stride=strides[0], padding=padding, dilation=dilations[0], groups=group)
         if b is not None:
             y = mx.add(y, mx.reshape(b, (1, 1, -1)))
@@ -79,6 +80,7 @@ def _conv_impl(x, w, b, attrs):
     elif ndim == 2:
         x = mx.transpose(x, (0, 2, 3, 1))
         w = mx.transpose(w, (0, 2, 3, 1))
+        x, padding = _apply_asymmetric_padding(x, padding, ndim)
         stride = tuple(strides) if len(strides) > 1 else strides[0]
         dilation = tuple(dilations) if len(dilations) > 1 else dilations[0]
         y = mx.conv2d(x, w, stride=stride, padding=padding, dilation=dilation, groups=group)
@@ -88,6 +90,7 @@ def _conv_impl(x, w, b, attrs):
     elif ndim == 3:
         x = mx.transpose(x, (0, 2, 3, 4, 1))
         w = mx.transpose(w, (0, 2, 3, 4, 1))
+        x, padding = _apply_asymmetric_padding(x, padding, ndim)
         stride = tuple(strides)
         dilation = tuple(dilations)
         y = mx.conv3d(x, w, stride=stride, padding=padding, dilation=dilation, groups=group)
@@ -150,3 +153,17 @@ def _compute_padding(auto_pad, pads, ndim):
             return symmetric[0] if len(symmetric) == 1 else symmetric
         return pairs
     return 0
+
+def _apply_asymmetric_padding(x, padding, ndim):
+    """
+    Handle asymmetric padding by pre-padding the input with zeros.
+
+    When padding is a list of (before, after) pairs with unequal values,
+    mx.conv* can't handle it directly. We pad the input manually and
+    return padding=0 for the conv call.
+    Input x is in channels-last layout (N, spatial..., C).
+    """
+    if not isinstance(padding, list):
+        return x, padding
+    pad_widths = [(0, 0)] + padding + [(0, 0)]
+    return mx.pad(x, pad_widths), 0
