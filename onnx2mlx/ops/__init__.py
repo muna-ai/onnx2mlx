@@ -7,7 +7,7 @@ from __future__ import annotations
 import mlx.core as mx
 from typing import Callable, TYPE_CHECKING
 
-from ..converter import ConvertContext
+from ..context import ConvertContext
 
 Handler = Callable[[
     list[mx.array | None],
