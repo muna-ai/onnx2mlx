@@ -49,3 +49,6 @@ venv
 
 # Lock files
 uv.lock
+
+# Benchmarking
+bench/
