@@ -1,5 +1,5 @@
 ## 0.0.4
-*INCOMPLETE*
++ Added support for exporting models that use `GridSample` op on Linux.
 
 ## 0.0.3
 + Added support for asymmetric padding in convolution operators.
