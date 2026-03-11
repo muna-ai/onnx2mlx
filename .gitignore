@@ -46,3 +46,6 @@ dist/
 # Virtual envs
 .venv
 venv
+
+# Lock files
+uv.lock

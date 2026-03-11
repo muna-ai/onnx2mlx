@@ -72,14 +72,16 @@ def grid_sample(
     padding_mode = attrs.get("padding_mode", "zeros")
     align_corners = bool(attrs.get("align_corners", 0))
     if mode in ("bilinear", "linear") and padding_mode == "zeros" and not align_corners:
-        # NCHW -> NHWC
         x_nhwc = mx.transpose(x, (0, 2, 3, 1))
-        y_nhwc = _grid_sample_metal(x_nhwc, grid)
-        # NHWC -> NCHW
+        y_nhwc = (
+            _grid_sample_metal(x_nhwc, grid)
+            if mx.metal.is_available()
+            else _grid_sample_bilinear(x_nhwc, grid)
+        )
         return [mx.transpose(y_nhwc, (0, 3, 1, 2))]
     raise NotImplementedError(
         f"GridSample with mode='{mode}', padding_mode='{padding_mode}', "
-        f"align_corners={align_corners} is not supported by the Metal kernel"
+        f"align_corners={align_corners} is not supported"
     )
 
 def _onnx_resize_mode(mode: str) -> str:
@@ -93,7 +95,7 @@ def _onnx_resize_mode(mode: str) -> str:
 
 def _grid_sample_metal(x: mx.array, grid: mx.array):
     """
-    Bilinear grid sample with zeros padding and align_corners=False.
+    Bilinear grid sample using a custom Metal kernel.
 
     Parameters:
         x (mx.array): Input tensor in NHWC layout `(B, H, W, C)`.
@@ -120,6 +122,37 @@ def _grid_sample_metal(x: mx.array, grid: mx.array):
         template=[("T", x.dtype)],
     )
     return outputs[0]
+
+def _grid_sample_bilinear(x: mx.array, grid: mx.array):
+    """
+    Bilinear grid sample using pure MLX ops.
+
+    Parameters:
+        x (mx.array): Input tensor in NHWC layout `(B, H, W, C)`.
+        grid (mx.array): Sampling grid `(B, gH, gW, 2)` with coords in `[-1, 1]`.
+    """
+    B, H, W, C = x.shape
+    _, gH, gW, _ = grid.shape
+    ix = ((grid[..., 0] + 1) * W - 1) / 2
+    iy = ((grid[..., 1] + 1) * H - 1) / 2
+    ix0 = mx.floor(ix).astype(mx.int32)
+    iy0 = mx.floor(iy).astype(mx.int32)
+    ix1 = ix0 + 1
+    iy1 = iy0 + 1
+    fx = (ix - ix0.astype(x.dtype))[..., None]
+    fy = (iy - iy0.astype(x.dtype))[..., None]
+    wa = (1 - fx) * (1 - fy)
+    wb = fx * (1 - fy)
+    wc = (1 - fx) * fy
+    wd = fx * fy
+    x_flat = mx.reshape(x, (B * H * W, C))
+    offsets = (mx.arange(B) * H * W).reshape(B, 1, 1)
+    def _gather(iy, ix):
+        mask = (iy >= 0) & (iy < H) & (ix >= 0) & (ix < W)
+        idx = mx.clip(iy, 0, H - 1) * W + mx.clip(ix, 0, W - 1) + offsets
+        vals = x_flat[idx.reshape(-1)].reshape(B, gH, gW, C)
+        return mx.where(mask[..., None], vals, 0)
+    return wa * _gather(iy0, ix0) + wb * _gather(iy0, ix1) + wc * _gather(iy1, ix0) + wd * _gather(iy1, ix1)
 
 _GRID_SAMPLE_SOURCE = """
 uint elem = thread_position_in_grid.x;
