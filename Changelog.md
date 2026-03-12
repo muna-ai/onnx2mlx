@@ -1,3 +1,6 @@
+## 0.0.6
+*INCOMPLETE*
+
 ## 0.0.5
 + Added `export_to_mlx` function to export an ONNX model to a serialized MLX function.
 + Refactored `onnx2mlx` function to `convert_to_mlx`.
