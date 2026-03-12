@@ -12,7 +12,7 @@ from ._utils import get_attrs, onnx_tensor_to_mlx
 from .ops import OP_REGISTRY
 from .context import ConvertContext, Float64Mode
 
-def onnx2mlx(
+def convert_to_mlx(
     model: ModelProto,
     *,
     float64_mode: Float64Mode="raise",

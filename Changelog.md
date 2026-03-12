@@ -1,5 +1,6 @@
 ## 0.0.5
-*INCOMPLETE*
++ Added `export_to_mlx` function to export an ONNX model to a serialized MLX function.
++ Refactored `onnx2mlx` function to `convert_to_mlx`.
 
 ## 0.0.4
 + Added support for exporting models that use `GridSample` op on Linux.
